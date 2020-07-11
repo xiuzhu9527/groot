@@ -81,7 +81,8 @@ def hbase(software_path):
 
     start_server = cm.get('hbase', 'start_server')
     if start_server == 'true':
-        start_cmd = 'cd %s/bin && ./start_hbase.sh' % hbase_home
+        start_cmd = 'cd %s/bin && ./start-hbase.sh' % hbase_home
+        logger.info('start_cmd: %s', start_cmd)
         res = os.system(start_cmd)
         logger.info('hbase server start: %s', res)
 
