@@ -3,12 +3,12 @@
 
 大数据开发一键部署本地开发环境, 基于python 2开发，不兼容window部署。本着以学习为目的，希望能与众多优秀开发者多多交流。
 
-###支持部署组件
+### 支持部署组件
 
 * [hbase](doc/hbase.md)
 
 
-###quick start
+### quick start
 
 * 下载项目
 ```
@@ -23,7 +23,7 @@ python groor.py
 
 ### groot_conf.ini配置项解释
 
-* [xxx]: 组件名
+* \[xxx\]: 组件名
 
 * version: 组件版本
 
