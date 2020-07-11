@@ -40,7 +40,7 @@ export JAVA_HOME=xxx
 
 ### step4
 
-* 启动服务, web ui http://localhost:60010
+* 启动服务, web ui http://localhost:16010
 
 ```
 ./bin/start_hbase.sh
