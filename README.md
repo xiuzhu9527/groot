@@ -6,7 +6,7 @@
 ### 支持部署组件
 
 * [hbase](doc/hbase.md)
-
+* [zookeeper](doc/zookeeper.md)
 
 ### quick start
 

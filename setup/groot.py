@@ -44,6 +44,51 @@ def untar(tar_file_path, untar_dir_path):
     os.remove(tar_file_path)
     return untar_path
 
+def zookeeper(software_path):
+    logger.info('install zookeeper start!')
+    version = cm.get('zookeeper', 'version')
+    logger.info('zookeeper version is %s', version)
+
+    # download zookeeper package
+    zk_url = 'http://archive.apache.org/dist/zookeeper/zookeeper-%s/apache-zookeeper-%s-bin.tar.gz' % (version, version)
+    target_file = download(zk_url, software_path)
+    logger.info('unzip zookeeper package')
+    zk_home = '%s/zookeeper-%s' % (software_path, version)
+    if os.path.exists(zk_home):
+        shutil.rmtree(zk_home)
+    unzip_path = untar(target_file, software_path)
+    os.rename(unzip_path, zk_home)
+    logger.info(zk_home)
+
+    # create data dir and logs
+    data_path = '%s/data' % zk_home
+    if not os.path.exists(data_path):
+        os.makedirs(data_path)
+    logs_path = '%s/logs' % zk_home
+    if not os.path.exists(logs_path):
+        os.makedirs(logs_path)
+
+    # set zoo.cfg
+    zoo_cfg = '%s/conf/zoo.cfg' % zk_home
+    zoo_sample_cfg = '%s/conf/zoo_sample.cfg' % zk_home
+    os.rename(zoo_sample_cfg, zoo_cfg)
+    open(zoo_cfg, 'a').write('dataDir=%s\n' % data_path)
+    open(zoo_cfg, 'a').write('dataLogDir=%s\n' % logs_path)
+    open(zoo_cfg, 'a').write('server.1=localhost:2888:3888\n')
+
+    # set myid
+    myid_file = '%s/myid' % data_path
+    open(myid_file, 'w').write('1')
+
+    # start zookeeper
+    start_server = cm.get('zookeeper', 'start_server')
+    if start_server == 'true':
+        start_cmd = 'cd %s/bin && ./zkServer.sh start' % zk_home
+        logger.info('start_cmd: %s', start_cmd)
+        res = os.system(start_cmd)
+        logger.info('server start: %s', res)
+    logger.info('install zookeeper finish!')
+
 def hbase(software_path):
     logger.info('install hbase start!')
     version = cm.get('hbase', 'version')
@@ -52,8 +97,12 @@ def hbase(software_path):
     # download hbase package
     hbase_url = 'http://archive.apache.org/dist/hbase/%s/hbase-%s-bin.tar.gz' % (version, version)
     target_file = download(hbase_url, software_path)
+    hbase_home = '%s/hbase-%s' % (software_path, version)
+    if os.path.exists(hbase_home):
+        shutil.rmtree(hbase_home)
     logger.info('unzip hbase package')
-    hbase_home = untar(target_file, software_path)
+    unzip_path = untar(target_file, software_path)
+    os.rename(unzip_path, hbase_home)
     logger.info(hbase_home)
 
     # create data dir
@@ -69,14 +118,15 @@ def hbase(software_path):
     hbase_env_file = '%s/conf/hbase-env.sh' % hbase_home
     ex_java_home = 'export JAVA_HOME=%s' % os.getenv('JAVA_HOME')
     open(hbase_env_file, 'a').write(ex_java_home + '\n')
+    open(hbase_env_file, 'a').write('export HBASE_MANAGES_ZK=false' + '\n')
 
     # set hbase-site.xml
     logger.info('set hbase-site.xml')
     hbase_site = '%s/conf/hbase-site.xml' % hbase_home
     xp = xml_util.XmlParse(hbase_site)
     xp.create_prop_node('hbase.rootdir', hbase_data_path)
-    xp.create_prop_node('hbase.zookeeper.property.dataDir', zk_data_path)
-    xp.create_prop_node('hbase.cluster.distributed', 'false')
+    xp.create_prop_node('hbase.zookeeper.quorum', 'localhost:2181')
+    xp.create_prop_node('hbase.cluster.distributed', 'true')
     xp.write_out()
 
     start_server = cm.get('hbase', 'start_server')
